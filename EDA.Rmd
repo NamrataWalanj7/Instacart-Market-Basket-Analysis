@@ -1,0 +1,152 @@
+---
+title: "ExploratoryAnalysis"
+author: "Neha Puthran"
+date: "May 12, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Importing the libraries required
+```{r lib}
+require(tidyverse)
+require(knitr)
+require(treemap)
+library(ggplot2)
+require(data.table)
+require(dplyr)
+require(tidyr)
+require(caret)
+```
+
+## Loading the dataset
+```{r dataset}
+aisles <- read.csv("aisles.csv")
+departments <- read.csv('departments.csv')
+order_products_prior <- read.csv('order_products__train.csv')
+orders <- read.csv("orders.csv")
+products <- read.csv("products.csv")
+```
+
+## Understanding the data
+```{r data}
+#orders
+kable(head(orders,12))
+
+#order_products_prior
+kable(head(order_products_prior,10))
+
+#departments
+kable(head(departments,10))
+
+#products
+kable(head(products,10))
+
+
+#aisles
+kable(head(aisles,10))
+```
+
+## Data Exploration
+```{r eda}
+#reorder proportion
+order_products_prior$reordered <- as.factor(order_products_prior$reordered)
+ord <- table(order_products_prior$reordered)
+
+ggplot(order_products_prior, aes(reordered)) +
+  geom_bar(aes(y = (..count..)/sum(..count..)), fill = "skyblue", colour = "black") +
+   scale_y_continuous(labels=scales::percent) +
+  ylab("Percentage") + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+## Products with the highest orders
+```{r highestOrder}
+top_ordered_products <- order_products_prior %>% group_by(product_id) %>%
+summarise(reorder_count = n()) %>%
+arrange(desc(reorder_count)) %>%
+top_n(10)
+
+top_ordered_products <- inner_join(top_ordered_products, products) %>%
+select(product_name, reorder_count)
+
+ggplot(top_ordered_products, aes(x = reorder(product_name, reorder_count), y = reorder_count)) +
+geom_bar(stat = "identity", fill = "skyblue", colour = "black") +
+coord_flip() +
+ylab("count") +
+xlab("Products") +
+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+## Days of week with the most orders
+```{r mostOrderDays}
+orders$order_dow <- as.factor(orders$order_dow)
+orders$order_hour_of_day <- as.factor(orders$order_hour_of_day)
+
+options("scipen" = 99999999)
+ggplot(orders, aes(order_dow)) +
+geom_bar(fill = "skyblue", colour = "black") +
+xlab("Day of Week") +
+ylab("Count") +
+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+## Hour of the day with the most orders
+```{r hourOfTheDay}
+ggplot(orders, aes(order_hour_of_day)) +
+  geom_bar(fill = "skyblue", colour = "black") +
+  xlab("Hour of Day") +
+  ylab("Count") +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+## Aisle with the most sales:
+```{r aisleSales}
+aisle_sales <- left_join(order_products_prior, products) %>%
+  select(aisle_id, product_name) %>%
+  left_join(aisles) %>%
+  group_by(aisle) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count))
+
+ggplot(aisle_sales[1:10, ], aes(reorder(aisle, count), count)) +
+  geom_bar(stat = "identity", fill = "skyblue", colour = "black") +
+  coord_flip() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black")) +
+  xlab("Probability")
+```
+
+## Total products(stock) in each department
+```{r totalProd}
+tmp2<- products %>%
+group_by(aisle_id, department_id) %>%
+summarise(count = n()) %>%
+ungroup() %>% 
+left_join(aisles) %>%
+left_join(departments) %>%
+group_by(department, aisle) %>%
+summarise(count2 = n())
+
+treemap(tmp2, index = c("department", "aisle"), vSize = "count2", title="",palette="Set3",border.col="#FFFFFF")
+```
+
+## Products sold within each department
+```{r dept}
+tmp3 <- order_products_prior %>%
+  group_by(product_id) %>%
+  summarise(count = n()) %>%
+  left_join(products) %>%
+  left_join(departments) %>%
+  left_join(aisles) %>%
+  group_by(department, aisle) %>%
+  summarise(count2 = sum(count))
+  
+treemap(tmp3, index = c("department", "aisle"), vSize = "count2", title="",palette="Set2",border.col="#FFFFFF")
+```
