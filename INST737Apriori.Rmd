@@ -1,0 +1,94 @@
+---
+title: "Apriori"
+author: "Neha Puthran"
+date: "May 12, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r lib}
+library(readr)
+library(dplyr)
+library(tidyr)
+library(arules)
+library(arulesViz)
+library(methods)
+```
+
+## Loading datasets prior products and products
+```{r order_products}
+ordr_pr <- read_csv("order_products__prior.csv")
+prods <- read_csv("products.csv")
+```
+
+## Join between prior products and products dataset by product ID to create a common data for analysis
+```{r order_baskets}
+order_baskets <- ordr_pr %>% 
+  inner_join(prods, by="product_id") %>% 
+  group_by(order_id) %>%
+  summarise(basket = as.vector(list(product_name)))
+```
+
+## Converting the dataset into transactions for performing association mining.
+```{r transactions}
+transactions <- as(order_baskets$basket, "transactions")
+```
+
+## Product Count
+```{r cnt}
+itemFrequencyPlot(transactions,topN=20,type="absolute")
+```
+
+
+
+## Performing association mining
+```{r associationMining}
+support<-0.01
+itemsets <- apriori(transactions, parameter = list(target = "frequent itemsets", supp=support, minlen=2), control = list(verbose = FALSE))
+```
+
+## Plot of most frequent itemsets
+```{r plot}
+basketSizes<-size(transactions)
+sets_order_supp <- DATAFRAME(sort(itemsets, by="support", decreasing = F))
+barplot(sets_order_supp$support, names.arg=sets_order_supp$items, xlim=c(0,0.02), horiz = T, las = 2, cex.names = .8, main = "Frequent Itemsets")
+mtext(paste("support:",support), padj = .8)
+product_baskets <- transactions[basketSizes > 1]
+```
+
+## Generating rules
+```{r rules}
+rules <- apriori(product_baskets, parameter = list(supp =  0.003269976, conf = 0.01, maxlen=3), control = list(verbose = FALSE)) 
+```
+
+## Sorted by lift value
+```{r sort_rules}
+inspect(sort(rules, by="lift")[1:5])
+```
+
+## Rules as per confidence to find rules which are most significant
+```{r top_rules}
+top_rules = inspect(sort(rules, by="confidence")[1:10])
+```
+
+## Before purchasing banana the most significant rules ordered by confidence are
+```{r alt_rules}
+rules2<-apriori(data=product_baskets, parameter=list(supp=0.0032,conf = 0.01), 
+               appearance = list(default="lhs",rhs="Banana"),
+               control = list(verbose=F))
+
+rules2<-sort(rules2, decreasing=TRUE,by="confidence")
+inspect(rules2[1:15])
+```
+
+## After purchasing Banana the most significant rules depicted by confidence are
+```{r apriori}
+rules3<-apriori(data=product_baskets, parameter=list(supp=0.0032,conf = 0.01), 
+               appearance = list(default="rhs",lhs="Banana"),
+               control = list(verbose=F))
+rules3<-sort(rules3, decreasing=TRUE,by="confidence")
+inspect(rules3[1:15])
+```
