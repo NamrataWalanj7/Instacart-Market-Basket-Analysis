@@ -2,7 +2,7 @@
 Conducted data mining on big data to study product affinity &amp; derive customer buying pattern for highest selling products.
 
 Project Background
-Instacart Market Basket Analysis is a project based on analyzing the Instacart orders in order to gain meaningful insights which can be useful for the organization to maintain the demand supply ratio and achieve enhanced performance. The motivation was to apply the various concepts learnt during the course and achieve insights from the huge amount of data which would allow us to practice the skill sets and learn more.
+Instacart Market Basket Analysis is a project based on analyzing the Instacart orders in order to gain meaningful insights which can be useful for the organization to maintain the demand supply ratio and achieve enhanced performance. The motivation was to apply the various concepts learnt during the course and achieve insights from the huge amount of data to practice the skill sets and learn more.
 
 Problem Statement
 The problem statements considered for this project are:
