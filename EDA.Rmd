@@ -1,6 +1,6 @@
 ---
 title: "ExploratoryAnalysis"
-author: "Neha Puthran"
+author: "Namrata Walanj"
 date: "May 12, 2018"
 output: html_document
 ---
