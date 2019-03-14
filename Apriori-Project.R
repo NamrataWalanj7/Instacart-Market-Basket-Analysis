@@ -11,7 +11,7 @@ prods <- read_csv("C:/Users/namra/Documents/737 Data/products.csv")
 
 #Join between prior products and products dataset by product ID to create a common data for analysis
 order_baskets <- ordr_pr %>% 
-  inner_join(prods, by="product_id") %>% 
+  left_join(prods, by="product_id") %>% 
   group_by(order_id) %>%
   summarise(basket = as.vector(list(product_name)))
 
@@ -52,9 +52,7 @@ mtext(paste("support:",support), padj = .8)
 
 product_baskets <- transactions[basketSizes > 1]
 
-10000/dim(product_baskets)[1] 
-
-#Changng value of support and confidence
+#Changing value of support and confidence
 rules <- apriori(product_baskets, parameter = list(supp =  0.003269976, conf = 0.01, maxlen=3), control = list(verbose = FALSE)) 
 #pot of rules
 plot(rules)
@@ -87,21 +85,7 @@ rules3<-apriori(data=product_baskets, parameter=list(supp=0.0032,conf = 0.01),
 rules3<-sort(rules3, decreasing=TRUE,by="confidence")
 inspect(rules3[1:15])
 
-###Another Method
-
-itemFrequencyPlot(transactions,topN=20,type="absolute")
-
-rules <- apriori(transactions, parameter = list(supp = 0.001, conf = 0.1))
-
-# Show the top 5 rules, but only 2 digits
-inspect(rules[1:5])
-
-###Regression Model
-
 datanew = read.csv(file.choose(), header=TRUE)
 f = na.omit(datanew)
 write.csv(f,"ndata.csv",  row.names = TRUE)
 
-hdata = read.csv(file.choose(), header = TRUE)
-h = itemFrequency(hdata$product_name)
-hsata$
