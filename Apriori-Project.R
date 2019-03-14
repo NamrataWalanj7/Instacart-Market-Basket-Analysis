@@ -84,8 +84,3 @@ rules3<-apriori(data=product_baskets, parameter=list(supp=0.0032,conf = 0.01),
                control = list(verbose=F))
 rules3<-sort(rules3, decreasing=TRUE,by="confidence")
 inspect(rules3[1:15])
-
-datanew = read.csv(file.choose(), header=TRUE)
-f = na.omit(datanew)
-write.csv(f,"ndata.csv",  row.names = TRUE)
-
